@@ -1,13 +1,22 @@
 <template>
     <div class="hello">
         <h1>SANTAAAAAAAAAAA</h1>
-        <div class="content-section input-grid">
-            <label>Organizer Name (and phone number, if you want):</label>
-            <input placeholder="Dalinar Kholin (1234567890)" v-model="owner" />
-            <label>Date the exchange is happening:</label>
-            <input placeholder="12/20 4pm" v-model="dateOfExchange" />
+        <div v-if="status === 'success'">
+            <p> You should be receiving a text message about your secret santa! Have fun:)</p>
         </div>
-        <div class="content-section">
+        <div v-if="status === 'error'">
+            <p> Oops somethign seems wrong here, let the devs know! Maybe you were naughty this year!</p>
+        </div>
+        <div v-if="status === 'loading'">
+            <p>loading</p>
+        </div>
+        <div class="content-section" v-if="status === 'start'">
+            <div class="content-section input-grid">
+                <label>Organizer Name (and phone number, if you want):</label>
+                <input placeholder="Dalinar Kholin (1234567890)" v-model="owner" />
+                <label>Date the exchange is happening:</label>
+                <input placeholder="12/20 4pm" v-model="dateOfExchange" />
+            </div>
             <h3>People Participating:</h3>
             <ul>
                 <li v-for="person in people" :key="person.id" class="person-container">
@@ -18,21 +27,16 @@
                     <label>Mailing Address (if applicable): </label>
                     <input placeholder="123 Test Dr" v-model="person.address" />
                 </li>
-                <li v-if="people.length === 0">
-                    Add some people to get started
-                </li>
             </ul>
             <div class="button-container">
                 <button @click="addPerson()">Add Person</button>
             </div>
-        </div>
-        
-        <div class="content-section">
+            <div class="content-section">
             <div class="button-container submit">
                 <button class="submit-btn" @click="submit()">DO THE THING</button>
             </div>
         </div>
-        
+        </div>
     </div>
 </template>
 
@@ -41,10 +45,15 @@ export default {
     name: 'SecretSantaList',
     data() {
         return {
-            success: false,
+            status: "start",
             owner: "",
             dateOfExchange: "",
-            people: []
+            people: [{
+                id: Math.random(),
+                name: "",
+                phone: "",
+                address: ""
+            }]
         }
     },
     methods: {
@@ -62,20 +71,25 @@ export default {
             }
             const proceed = confirm("Are you sure? This will send a text to each of these people")
             if (proceed) {
+                this.status = 'loading';
                 const payload = {
                     owner: this.owner,
                     participantsList: this.people,
                     dateOfExchange: this.dateOfExchange
                 }
-                this.success = false
-                alert(JSON.stringify(payload))
                 fetch('https://znssd84jf2.execute-api.us-east-1.amazonaws.com/prod/', {
                     method: 'POST',
                     mode: 'no-cors',
                     referrerPolicy: 'no-referrer',
                     body: JSON.stringify(payload)
-                }).then(() => {
-                    this.success = true
+                }).then((resp) => {
+                    if(resp.ok){
+                        this.status = 'success'
+                    }else{
+                       this.status = 'error'
+                    }
+                }).catch(() => {
+                    this.status = 'error'
                 })
             }
         }
