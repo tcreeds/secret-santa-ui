@@ -14,7 +14,7 @@
                     <label>Name: </label>
                     <input placeholder="Barack Obama" v-model="person.name" />
                     <label>Phone: </label>
-                    <input placeholder="1234567890" v-model="person.phone" />
+                    <input type="tel" placeholder="1234567890" v-model="person.phone" />
                     <label>Mailing Address (if applicable): </label>
                     <input placeholder="123 Test Dr" v-model="person.address" />
                 </li>
@@ -32,6 +32,7 @@
                 <button class="submit-btn" @click="submit()">DO THE THING</button>
             </div>
         </div>
+        
     </div>
 </template>
 
@@ -40,6 +41,7 @@ export default {
     name: 'SecretSantaList',
     data() {
         return {
+            success: false,
             owner: "",
             dateOfExchange: "",
             people: []
@@ -62,15 +64,19 @@ export default {
             if (proceed) {
                 const payload = {
                     owner: this.owner,
-                    participantList: this.people,
+                    participantsList: this.people,
                     dateOfExchange: this.dateOfExchange
                 }
-
+                this.success = false
                 alert(JSON.stringify(payload))
-                /*fetch('url', {
+                fetch('https://znssd84jf2.execute-api.us-east-1.amazonaws.com/prod/', {
                     method: 'POST',
-                    data: JSON.stringify(payload)
-                })*/
+                    mode: 'no-cors',
+                    referrerPolicy: 'no-referrer',
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    this.success = true
+                })
             }
         }
     }
